@@ -7,11 +7,15 @@ const server = ServerPages.create();
 server.registerRoutes(
     join(dirname(fileURLToPath(import.meta.url)), "./wwwroot/routes"));
 
+let port = (process.env.PORT || "8080") as any;
+if (/^\d+$/.test(port)) {
+    port = Number(port) as any;
+}
 
 server.build({
     createSocketService: false,
     host: process.env.HOST,
-    port: Number(process.env.PORT || "8080"),
+    port,
     protocol: "http",
     trustProxy: false,
     acmeOptions: null,
