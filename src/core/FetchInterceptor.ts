@@ -1,4 +1,5 @@
-import { connect } from "net";
+import { connect } from "tls";
+import { connect as plainConnect } from "net";
 import { Page } from "puppeteer-core";
 import { Agent, fetch } from "undici";
 
@@ -12,14 +13,32 @@ const createDispatcher = () => {
     return new Agent({
         connect: (options, callback) => {
             try {
-                const s= connect({
-                    port,
-                    host
-                }, () => callback(null, s));
-                s.on("error", (e) => {
-                    console.error(e);
-                    callback(e, null);
-                });
+
+                if (/https/i.test(options.protocol)) {
+
+                    const s= connect({
+                        port,
+                        host
+                    }, () => callback(null, s));
+
+                    s.on("error", (e) => {
+                        console.error(e);
+                        callback(e, null);
+                    });
+
+                } else {
+                    const s = plainConnect({
+                        port,
+                        host
+                    }, () => callback(null, s));
+
+                    s.on("error", (e) => {
+                        console.error(e);
+                        callback(e, null);
+                    });
+
+                }
+
             } catch (error) {
                 callback(error, null);
             }
