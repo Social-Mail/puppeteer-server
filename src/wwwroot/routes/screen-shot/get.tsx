@@ -6,6 +6,7 @@ import { sleep } from "../../../core/sleept.js";
 import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import { PuppeteerPath } from "../../../core/PuppeteerPath.js";
+import { defaultArgs } from "../../../core/defaultArgs.js";
 
 const { executablePath } = PuppeteerPath;
 
@@ -36,10 +37,39 @@ export default class extends Page {
 
         const browser = await puppeteer.launch({
             executablePath,
-            channel: "chrome",
-            acceptInsecureCerts: true
+            acceptInsecureCerts: true,
+            args: [... defaultArgs]
         });
+
         const page = await browser.newPage();
+
+        // await page.setRequestInterception(true);
+
+        // page.on("request", async (e) => {
+        //     try {
+        //         let url = e.url();
+        //         const u = new URL(url);
+        //         u.hostname = "0.0.0.0";
+        //         url = u.toString();
+        //         const r = await fetch(url, { headers: e.headers(), body: e.hasPostData() ? e.postData() : void 0});
+        //         const body = Buffer.from(await r.arrayBuffer());
+        //         const headers = {};
+        //         for (const [key, value] of r.headers.entries()) {
+        //             headers[key] = value;
+        //         }
+        //         await e.respond({
+        //             body,
+        //             contentType: r.headers.get("content-type"),
+        //             headers
+        //         });
+                
+        //     } catch (error) {
+        //         await e.respond({
+        //             body: error.cause?.stack ?? error.stack ?? error,
+        //             status: 500
+        //         });
+        //     }
+        // });
 
         const width = Number(this.pageWidth || 1024);
         const height = Number(this.pageHeight || 1024);
@@ -52,7 +82,9 @@ export default class extends Page {
 
         await page.setViewport({ width, height });
 
-        await page.goto(this.pageUrl, { waitUntil: "domcontentloaded" });
+        await page.goto(this.pageUrl, {
+            waitUntil: "domcontentloaded",
+        });
 
         let now = Date.now();
         const end = now + timeout;
