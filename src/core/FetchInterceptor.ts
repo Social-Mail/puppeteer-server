@@ -10,6 +10,9 @@ const createDispatcher = () => {
     const host = process.env.LOCALHOST || "0.0.0.0";
 
     return new Agent({
+        allowH2: true,
+        keepAliveMaxTimeout: 0,
+        keepAliveTimeout: 0,
         connect: (options, callback) => {
             try {
 
