@@ -1,5 +1,4 @@
-import { connect } from "tls";
-import { connect as plainConnect } from "net";
+import { connect } from "net";
 import { Page } from "puppeteer-core";
 import { Agent, fetch } from "undici";
 
@@ -18,30 +17,15 @@ const createDispatcher = () => {
                     port = options.port as any;
                 }
 
-                if (/https/i.test(options.protocol)) {
+                const s = connect({
+                    port,
+                    host,
+                }, () => callback(null, s));
 
-                    const s= connect({
-                        port,
-                        host
-                    }, () => callback(null, s));
-
-                    s.on("error", (e) => {
-                        console.error(e);
-                        callback(e, null);
-                    });
-
-                } else {
-                    const s = plainConnect({
-                        port,
-                        host
-                    }, () => callback(null, s));
-
-                    s.on("error", (e) => {
-                        console.error(e);
-                        callback(e, null);
-                    });
-
-                }
+                s.on("error", (e) => {
+                    console.error(e);
+                    callback(e, null);
+                });
 
             } catch (error) {
                 callback(error, null);
@@ -59,15 +43,41 @@ export class FetchInterceptor {
 
                 dispatcher ??= createDispatcher();
 
+                let postBody = void 0;
+
                 const url = e.url();
+
+                if (e.hasPostData()) {
+                    postBody = e.postData();
+                } else {
+                    console.log(`Fetching ${url}`);
+                }
+
                 const r = await fetch(url, {
+                    method: e.method(),
                     headers: e.headers(),
                     dispatcher,
-                    body: e.hasPostData() ? e.postData() : void 0
+                    body: postBody
                 });
                 const body = Buffer.from(await r.arrayBuffer());
                 const headers = {};
+                let contentType;
                 for (const [key, value] of r.headers.entries()) {
+                    if (key.startsWith(":")) {
+                        continue;
+                    }
+                    switch(key) {
+                        case "keep-alive":
+                        case "connection":
+                        case "upgrade":
+                        case "transfer-encoding":
+                        case "alt-svc":
+                        case "content-encoding":
+                            continue;
+                        case "content-type":
+                            contentType = value;
+                            break;
+                    }
                     headers[key] = value;
                 }
                 await e.respond({
