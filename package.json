@@ -20,13 +20,13 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@entity-access/entity-access": "^1.0.449",
-    "@entity-access/server-pages": "^1.1.447"
+    "@entity-access/server-pages": "^1.1.448",
+    "puppeteer-core": "^24.7.2"
   },
   "devDependencies": {
     "@types/node": "^22.7.3",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
-    "typescript": "^5.8.3",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-standard": "^17.1.0",
@@ -35,6 +35,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prefer-arrow": "^1.2.3",
     "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-react": "^7.32.2"
+    "eslint-plugin-react": "^7.32.2",
+    "typescript": "^5.8.3"
   }
 }

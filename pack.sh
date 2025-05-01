@@ -5,7 +5,7 @@
 
 set -e
 
-cd docker
+# cd docker
 
 npm pack --workspace puppeteer --workspace puppeteer-core --workspace @puppeteer/browsers --pack-destination .
 

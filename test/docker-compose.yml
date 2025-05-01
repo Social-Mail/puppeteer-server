@@ -1,0 +1,13 @@
+# docker-compose.yml
+version: "3"
+services:
+  app:
+    # restart: on-failure
+    container_name: social-mail-puppeteer-server
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    environment:
+      - PORT=80
+    ports:
+      - "9991:80"
