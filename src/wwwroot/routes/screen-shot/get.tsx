@@ -36,7 +36,8 @@ export default class extends Page {
 
         const browser = await puppeteer.launch({
             executablePath,
-            channel: "chrome"
+            channel: "chrome",
+            acceptInsecureCerts: true
         });
         const page = await browser.newPage();
 
