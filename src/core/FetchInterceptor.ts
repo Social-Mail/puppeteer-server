@@ -6,7 +6,7 @@ let dispatcher: Agent;
 
 const createDispatcher = () => {
 
-    const port = 443;
+    const port = Number(process.env.HTTPS_PORT || 443);
     const host = process.env.LOCALHOST || "0.0.0.0";
 
     return new Agent({
