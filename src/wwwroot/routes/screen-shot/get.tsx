@@ -7,6 +7,9 @@ import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import { PuppeteerPath } from "../../../core/PuppeteerPath.js";
 import { defaultArgs } from "../../../core/defaultArgs.js";
+import { Agent, fetch } from "undici";
+import { connect } from "net";
+import { FetchInterceptor } from "../../../core/FetchInterceptor.js";
 
 const { executablePath } = PuppeteerPath;
 
@@ -33,6 +36,9 @@ export default class extends Page {
     @Query("timeout")
     pageTimeout: string;
 
+    @Query("allowRemote")
+    allowRemote: string;
+
     async run() {
 
         const browser = await puppeteer.launch({
@@ -43,33 +49,9 @@ export default class extends Page {
 
         const page = await browser.newPage();
 
-        // await page.setRequestInterception(true);
-
-        // page.on("request", async (e) => {
-        //     try {
-        //         let url = e.url();
-        //         const u = new URL(url);
-        //         u.hostname = "0.0.0.0";
-        //         url = u.toString();
-        //         const r = await fetch(url, { headers: e.headers(), body: e.hasPostData() ? e.postData() : void 0});
-        //         const body = Buffer.from(await r.arrayBuffer());
-        //         const headers = {};
-        //         for (const [key, value] of r.headers.entries()) {
-        //             headers[key] = value;
-        //         }
-        //         await e.respond({
-        //             body,
-        //             contentType: r.headers.get("content-type"),
-        //             headers
-        //         });
-                
-        //     } catch (error) {
-        //         await e.respond({
-        //             body: error.cause?.stack ?? error.stack ?? error,
-        //             status: 500
-        //         });
-        //     }
-        // });
+        if (/false/i.test(this.allowRemote || "false")) {
+            await FetchInterceptor.intercept(page);
+        }
 
         const width = Number(this.pageWidth || 1024);
         const height = Number(this.pageHeight || 1024);
