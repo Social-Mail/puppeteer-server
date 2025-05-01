@@ -11,7 +11,8 @@ COPY dist ./dist
 COPY node_modules ./node_modules
 ENV HOST=0.0.0.0
 ENV SELF_HOST=true
-EXPOSE 80 443 25
+ENV PORT=8123
+EXPOSE 8123
 
 
 ENTRYPOINT ["npm", "start"]
