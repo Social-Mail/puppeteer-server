@@ -32,7 +32,7 @@ export default class BrowserPage {
         await page.setViewport({ width, height });
 
 
-        if (/false/i.test(allowRemote || "false")) {
+        if (!/true/i.test(allowRemote)) {
             await FetchInterceptor.intercept(page);
         }
 
