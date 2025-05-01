@@ -7,12 +7,16 @@ let dispatcher: Agent;
 
 const createDispatcher = () => {
 
-    const port = Number(process.env.HTTPS_PORT || 443);
+    let port = Number(process.env.HTTPS_PORT || 443);
     const host = process.env.LOCALHOST || "0.0.0.0";
 
     return new Agent({
         connect: (options, callback) => {
             try {
+
+                if (options.port) {
+                    port = options.port as any;
+                }
 
                 if (/https/i.test(options.protocol)) {
 
