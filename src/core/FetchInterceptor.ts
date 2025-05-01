@@ -82,7 +82,7 @@ export class FetchInterceptor {
                 }
                 await e.respond({
                     body,
-                    contentType: r.headers.get("content-type"),
+                    contentType,
                     headers
                 });
                 
