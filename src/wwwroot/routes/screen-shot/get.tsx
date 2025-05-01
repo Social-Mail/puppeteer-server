@@ -1,17 +1,9 @@
-import DateTime from "@entity-access/entity-access/dist/types/DateTime.js";
 import Page from "@entity-access/server-pages/dist/Page.js";
 import { Query } from "@entity-access/server-pages/dist/core/Query.js";
-import puppeteer from 'puppeteer-core'
 import { sleep } from "../../../core/sleept.js";
 import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
-import { PuppeteerPath } from "../../../core/PuppeteerPath.js";
-import { defaultArgs } from "../../../core/defaultArgs.js";
-import { Agent, fetch } from "undici";
-import { connect } from "net";
-import { FetchInterceptor } from "../../../core/FetchInterceptor.js";
-
-const { executablePath } = PuppeteerPath;
+import BrowserPage from "../../../core/BrowserPage.js";
 
 export default class extends Page {
 
@@ -41,20 +33,7 @@ export default class extends Page {
 
     async run() {
 
-        const browser = await puppeteer.launch({
-            executablePath,
-            acceptInsecureCerts: true,
-            args: [... defaultArgs]
-        });
-
-        const page = await browser.newPage();
-
-        if (/false/i.test(this.allowRemote || "false")) {
-            await FetchInterceptor.intercept(page);
-        }
-
-        const width = Number(this.pageWidth || 1024);
-        const height = Number(this.pageHeight || 1024);
+        await using page = await BrowserPage.create(this);
 
         const timeout = Number(this.pageTimeout || 15000);
 
@@ -62,8 +41,7 @@ export default class extends Page {
 
         const testDelay = Number(this.pageTestDelay || 1000);
 
-        await page.setViewport({ width, height });
-
+        
         await page.goto(this.pageUrl, {
             waitUntil: "domcontentloaded",
         });
