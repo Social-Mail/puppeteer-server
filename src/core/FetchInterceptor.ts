@@ -1,54 +1,38 @@
-import { connect } from "net";
 import { Page } from "puppeteer-core";
-import { Agent, fetch } from "undici";
-
-let dispatcher: Agent;
-
-const createDispatcher = () => {
-
-    let port = Number(process.env.HTTPS_PORT || 443);
-    const host = process.env.LOCALHOST || "0.0.0.0";
-
-    return new Agent({
-        allowH2: true,
-        keepAliveMaxTimeout: 0,
-        keepAliveTimeout: 0,
-        connect: (options, callback) => {
-            try {
-
-                if (options.port) {
-                    port = options.port as any;
-                }
-
-                const s = connect({
-                    port,
-                    host,
-                }, () => callback(null, s));
-
-                s.on("error", (e) => {
-                    console.error(e);
-                    callback(e, null);
-                });
-
-            } catch (error) {
-                callback(error, null);
-            }
-        }
-    });
-};
+import Http2Client from "./Http2Client.js";
+import { resolve } from "dns/promises";
 
 export class FetchInterceptor {
+
+    static async isLocalHost(host: string) {
+        const hosts = await resolve(host);
+        if (hosts[0] === "127.0.0.1") {
+            return true;
+        }
+        return false;
+    }
 
     static async intercept(page: Page) {
         await page.setRequestInterception(true);
         await page.on("request", async (e) => {
              try {
 
-                dispatcher ??= createDispatcher();
-
                 let postBody = void 0;
 
                 const url = e.url();
+
+                const u = new URL(url);
+
+                if (!/https?/i.test(u.protocol)) {
+                    await e.continue();
+                    return;
+                }
+
+
+                if (!await this.isLocalHost(u.hostname)) {
+                    await e.continue();
+                    return;
+                }
 
                 if (e.hasPostData()) {
                     postBody = e.postData();
@@ -56,15 +40,14 @@ export class FetchInterceptor {
                     console.log(`Fetching ${url}`);
                 }
 
-                const r = await fetch(url, {
+                const r = await Http2Client.fetch(url, {
                     method: e.method(),
                     headers: e.headers(),
-                    dispatcher,
                     body: postBody
                 });
-                const body = Buffer.from(await r.arrayBuffer());
                 const headers = {};
                 let contentType;
+                const status = r.status;
                 for (const [key, value] of r.headers.entries()) {
                     if (key.startsWith(":")) {
                         continue;
@@ -83,7 +66,9 @@ export class FetchInterceptor {
                     }
                     headers[key] = value;
                 }
+                const body = Buffer.from(await r.arrayBuffer());
                 await e.respond({
+                    status,
                     body,
                     contentType,
                     headers

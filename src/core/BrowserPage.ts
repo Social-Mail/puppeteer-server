@@ -14,7 +14,6 @@ const { executablePath } = PuppeteerPath;
 export default class BrowserPage {
 
     static async create({
-        allowRemote,
         pageWidth,
         pageHeight
     }): Promise<Page & AsyncDisposable> {
@@ -31,10 +30,7 @@ export default class BrowserPage {
         const height = Number(pageHeight || 1024);
         await page.setViewport({ width, height });
 
-
-        if (!/true/i.test(allowRemote)) {
-            await FetchInterceptor.intercept(page);
-        }
+        await FetchInterceptor.intercept(page);
 
         page[Symbol.asyncDispose] = () => browser.close();
         
