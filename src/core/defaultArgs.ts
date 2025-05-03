@@ -21,6 +21,8 @@ export const defaultArgs = [
     '--disable-setuid-sandbox',
     '--disable-speech-api',
     '--disable-sync',
+    '--disable-gpu',
+    '--force-gpu-mem-available-mb=4096',
     '--disk-cache-size=33554432',
     '--mute-audio',
     '--no-default-browser-check',
