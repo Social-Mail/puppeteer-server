@@ -21,7 +21,7 @@ export default class BrowserPage {
         const browser = await puppeteer.launch({
             executablePath,
             acceptInsecureCerts: true,
-            args: [... defaultArgs]
+            args: [... defaultArgs],
         });
 
         const page = await browser.newPage();
@@ -31,6 +31,8 @@ export default class BrowserPage {
         await page.setViewport({ width, height });
 
         await FetchInterceptor.intercept(page);
+
+        page.on("console", (msg) => console.log(... msg.args()));
 
         page[Symbol.asyncDispose] = () => browser.close();
         
