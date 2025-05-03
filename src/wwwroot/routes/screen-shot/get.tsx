@@ -11,11 +11,11 @@ export default class extends Page {
     @Query("url")
     pageUrl: string;
 
-    @Query("width")
-    pageWidth: string;
+    @Query.asNumber("width")
+    pageWidth: number;
 
-    @Query("height")
-    pageHeight: string;
+    @Query.asNumber("height")
+    pageHeight: number;
 
     @Query("output")
     pageOutput: string;
@@ -26,21 +26,16 @@ export default class extends Page {
     @Query("testDelay")
     pageTestDelay: string;
 
-    @Query("timeout")
-    pageTimeout: string;
+    @Query.asNumber("timeout")
+    pageTimeout: number;
 
-    @Query("allowRemote")
-    allowRemote: string;
+    @Query.asNumber("deviceScaleFactor")
+    deviceScaleFactor: number;
 
-    @Query("deviceScaleFactor")
-    deviceScaleFactor: any;
-
-    @Query("dumpio")
-    dumpio: any;
+    @Query.asBoolean("dumpio")
+    dumpio: boolean;
 
     async run() {
-
-        this.dumpio = this.dumpio ? /true/i.test(this.dumpio) : false;
 
         await using page = await BrowserPage.create(this);
 
