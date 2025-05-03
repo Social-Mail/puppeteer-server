@@ -32,15 +32,6 @@ const createDispatcher = async (host: string) => {
 
 export default class Http2Client {
 
-    static async isLocalHost(host: string) {
-        const hosts = await resolve(host);
-        if (hosts[0] === "127.0.0.1") {
-            return true;
-        }
-        return false;
-    }
-
-
     static async fetchLocal(url: string, { headers, body, method }) {
 
         const u = new URL(url);
@@ -57,17 +48,4 @@ export default class Http2Client {
 
     }
 
-    static async fetch(u: URL, url: string, { headers, body, method }) {
-
-        if (await this.isLocalHost(u.hostname)) {
-            return this.fetchLocal(url, { headers, body, method});
-        }
-
-        return fetch(url, {
-            headers,
-            body,
-            method
-        })
-
-    }
 }

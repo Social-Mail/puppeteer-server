@@ -4,6 +4,14 @@ import { resolve } from "dns/promises";
 
 export class FetchInterceptor {
 
+    static async isLocalHost(host: string) {
+        const hosts = await resolve(host);
+        if (hosts[0] === "127.0.0.1") {
+            return true;
+        }
+        return false;
+    }
+
     static async intercept(page: Page) {
         await page.setRequestInterception(true);
         await page.on("request", async (e) => {
@@ -21,18 +29,18 @@ export class FetchInterceptor {
                 }
 
 
-                // if (!await this.isLocalHost(u.hostname)) {
-                //     await e.continue();
-                //     return;
-                // }
-
                 if (e.hasPostData()) {
                     postBody = e.postData();
                 } else {
                     console.log(`Fetching ${url}`);
                 }
 
-                const r = await Http2Client.fetch(u, url, {
+                if (!await this.isLocalHost(u.hostname)) {
+                    await e.continue();
+                    return;
+                }
+
+                const r = await Http2Client.fetchLocal(url, {
                     method: e.method(),
                     headers: e.headers(),
                     body: postBody
