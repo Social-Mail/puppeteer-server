@@ -43,7 +43,7 @@ export default class extends Page {
 
         
         await page.goto(this.pageUrl, {
-            waitUntil: "domcontentloaded",
+            waitUntil: "networkidle2",
         });
 
         let now = Date.now();
