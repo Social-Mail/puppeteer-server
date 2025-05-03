@@ -41,9 +41,9 @@ export default class extends Page {
 
         const testDelay = Number(this.pageTestDelay || 1000);
 
-        
         await page.goto(this.pageUrl, {
             waitUntil: "networkidle2",
+            timeout,
         });
 
         let now = Date.now();
