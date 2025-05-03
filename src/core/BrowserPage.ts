@@ -25,6 +25,7 @@ export default class BrowserPage {
         });
 
         const page = await browser.newPage();
+        await page.setCacheEnabled(false);
 
         const width = Number(pageWidth || 1024);
         const height = Number(pageHeight || 1024);
