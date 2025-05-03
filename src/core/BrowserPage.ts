@@ -23,6 +23,7 @@ export default class BrowserPage {
             executablePath,
             acceptInsecureCerts: true,
             args: [... defaultArgs],
+            dumpio: true
         });
 
         const page = await browser.newPage();
