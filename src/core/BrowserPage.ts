@@ -16,6 +16,7 @@ export default class BrowserPage {
     static async create({
         pageWidth,
         pageHeight,
+        dumpio = false,
         deviceScaleFactor = 1
     }): Promise<Page & AsyncDisposable> {
         
@@ -23,7 +24,7 @@ export default class BrowserPage {
             executablePath,
             acceptInsecureCerts: true,
             args: [... defaultArgs],
-            dumpio: true
+            dumpio
         });
 
         const page = await browser.newPage();

@@ -35,7 +35,12 @@ export default class extends Page {
     @Query("deviceScaleFactor")
     deviceScaleFactor: any;
 
+    @Query("dumpio")
+    dumpio: any;
+
     async run() {
+
+        this.dumpio = this.dumpio ? /true/i.test(this.dumpio) : false;
 
         await using page = await BrowserPage.create(this);
 
