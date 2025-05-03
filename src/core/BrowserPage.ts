@@ -34,11 +34,24 @@ export default class BrowserPage {
 
         await FetchInterceptor.intercept(page);
 
-        page.on("console", (msg) => console.log(... msg.args()));
+        page.on('console', async (message) => {
+            if (message.text() != "JSHandle@error") {
+                console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`);
+                return;
+            }
+            const messages = await Promise.all(message.args().map((arg) => {
+                return arg.getProperty("message");
+            }));
+            
+            console.log(`${message.type().substring(0, 3).toUpperCase()} ${messages.filter(Boolean)}`);
+        });
 
         page.on('requestfailed', request => {
             console.log(`url: ${request.url()}, errText: ${request.failure().errorText}, method: ${request.method()}`)
         });
+
+        page.on("error", console.error);
+        page.on("pageerror", console.error);
 
         page[Symbol.asyncDispose] = () => browser.close();
         
