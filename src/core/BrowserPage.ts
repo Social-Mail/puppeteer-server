@@ -15,7 +15,8 @@ export default class BrowserPage {
 
     static async create({
         pageWidth,
-        pageHeight
+        pageHeight,
+        deviceScaleFactor = 1
     }): Promise<Page & AsyncDisposable> {
         
         const browser = await puppeteer.launch({
@@ -28,11 +29,16 @@ export default class BrowserPage {
         
         const width = Number(pageWidth || 1024);
         const height = Number(pageHeight || 1024);
-        await page.setViewport({ width, height });
+        deviceScaleFactor = Number(deviceScaleFactor);
+        await page.setViewport({ width, height, deviceScaleFactor });
 
         await FetchInterceptor.intercept(page);
 
         page.on("console", (msg) => console.log(... msg.args()));
+
+        page.on('requestfailed', request => {
+            console.log(`url: ${request.url()}, errText: ${request.failure().errorText}, method: ${request.method()}`)
+        });
 
         page[Symbol.asyncDispose] = () => browser.close();
         

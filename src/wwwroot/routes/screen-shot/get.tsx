@@ -31,6 +31,9 @@ export default class extends Page {
     @Query("allowRemote")
     allowRemote: string;
 
+    @Query("deviceScaleFactor")
+    deviceScaleFactor: any;
+
     async run() {
 
         await using page = await BrowserPage.create(this);
