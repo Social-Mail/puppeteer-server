@@ -1,4 +1,5 @@
 
+import { resolve } from "dns/promises";
 import { Agent } from "https";
 import { connect, Socket } from "net";
 import fetch from "node-fetch";
@@ -31,7 +32,16 @@ const createDispatcher = async (host: string) => {
 
 export default class Http2Client {
 
-    static async fetch(url: string, { headers, body, method }) {
+    static async isLocalHost(host: string) {
+        const hosts = await resolve(host);
+        if (hosts[0] === "127.0.0.1") {
+            return true;
+        }
+        return false;
+    }
+
+
+    static async fetchLocal(url: string, { headers, body, method }) {
 
         const u = new URL(url);
         const host = u.hostname;
@@ -40,6 +50,20 @@ export default class Http2Client {
 
         return fetch(url, {
             agent,
+            headers,
+            body,
+            method
+        })
+
+    }
+
+    static async fetch(u: URL, url: string, { headers, body, method }) {
+
+        if (await this.isLocalHost(u.hostname)) {
+            return this.fetchLocal(url, { headers, body, method});
+        }
+
+        return fetch(url, {
             headers,
             body,
             method
