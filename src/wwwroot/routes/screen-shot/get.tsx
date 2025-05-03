@@ -4,6 +4,7 @@ import { sleep } from "../../../core/sleept.js";
 import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import BrowserPage from "../../../core/BrowserPage.js";
+import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
 
 export default class extends Page {
 
@@ -69,15 +70,11 @@ export default class extends Page {
         switch(output) {
             case "webp":
                 contentType = "image/webp";
-                outputBuffer = await page.screenshot({
-                    type: output
-                });
+                outputBuffer = await takeFullPageScreenshot(page, output);
                 break;
             case "png":
                 contentType = "image/png";
-                outputBuffer = await page.screenshot({
-                    type: output
-                });
+                outputBuffer = await takeFullPageScreenshot(page, output);
                 break;
             case "pdf":
                 contentType = "application/pdf";
