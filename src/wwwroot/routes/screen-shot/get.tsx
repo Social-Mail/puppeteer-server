@@ -35,6 +35,12 @@ export default class extends Page {
     @Query.asBoolean("dumpio")
     dumpio: boolean;
 
+    @Query.asBoolean
+    mobile: boolean;
+
+    @Query
+    userAgent: string;
+
     async run() {
 
         await using page = await BrowserPage.create(this);
@@ -44,6 +50,13 @@ export default class extends Page {
         const test = this.pageTest || "true";
 
         const testDelay = Number(this.pageTestDelay || 1000);
+
+        if(this.mobile) {
+            const userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1 Mobile-Preview/1.1";
+            page.setUserAgent(userAgent);
+        } else if (this.userAgent) {
+            page.setUserAgent(this.userAgent);
+        }
 
         await page.goto(this.pageUrl, {
             waitUntil: "networkidle2",
