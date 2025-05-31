@@ -38,6 +38,9 @@ export default class extends Page {
     @Query.asBoolean
     mobile: boolean;
 
+    @Query.asBoolean
+    viewPort: boolean;
+
     @Query
     userAgent: string;
 
@@ -80,10 +83,27 @@ export default class extends Page {
         let outputBuffer: Uint8Array;
         let contentType: any;
 
+        if (this.viewPort) {
+            if (this.mobile) {
+                this.deviceScaleFactor ??= 2;
+            }
+            const {
+                pageWidth: width,
+                pageHeight: height,
+                deviceScaleFactor = this.mobile ? 2 : 1
+            } = this;
+            page.setViewport({
+                width,
+                height,
+                deviceScaleFactor
+            });
+        }
+
         switch(output) {
             case "webp":
                 contentType = "image/webp";
-                outputBuffer = await takeFullPageScreenshot(page, output);
+                outputBuffer =
+                    await takeFullPageScreenshot(page, output);
                 break;
             case "png":
                 contentType = "image/png";
