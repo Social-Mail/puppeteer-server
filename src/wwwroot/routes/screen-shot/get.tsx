@@ -1,6 +1,6 @@
 import Page from "@entity-access/server-pages/dist/Page.js";
 import { Query } from "@entity-access/server-pages/dist/core/Query.js";
-import { sleep } from "../../../core/sleept.js";
+import { sleep } from "../../../core/sleep.js";
 import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import BrowserPage from "../../../core/BrowserPage.js";
