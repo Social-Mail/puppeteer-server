@@ -16,7 +16,6 @@ EXPOSE 8123
 
 USER root
 RUN npm i --omit=dev
-RUN npm install --include=optional sharp
 
 USER $PPTRUSER_UID
 
