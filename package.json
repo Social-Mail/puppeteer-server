@@ -1,6 +1,6 @@
 {
   "name": "@social-mail/puppeteer-server",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "## Phase 1",
   "main": "index.js",
   "type": "module",
