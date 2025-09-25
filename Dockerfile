@@ -6,7 +6,6 @@ FROM ghcr.io/puppeteer/puppeteer:latest
 # WORKDIR /app
 COPY package*.json ./
 COPY index.js ./
-COPY node_modules ./node_modules
 COPY src ./src
 COPY dist ./dist
 ENV HOST=0.0.0.0
@@ -16,7 +15,8 @@ ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 EXPOSE 8123
 
 USER root
-RUN npm i
+RUN npm i --omit=dev
+RUN npm install --include=optional sharp
 
 USER $PPTRUSER_UID
 
