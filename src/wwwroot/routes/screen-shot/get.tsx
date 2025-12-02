@@ -5,6 +5,7 @@ import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import BrowserPage from "../../../core/BrowserPage.js";
 import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
+import { CookieData } from "puppeteer-core";
 
 export default class extends Page {
 
@@ -38,6 +39,9 @@ export default class extends Page {
     @Query.asBoolean
     mobile: boolean;
 
+    @Query
+    cookies: string;
+
     @Query.asBoolean
     viewPort: boolean;
 
@@ -47,6 +51,12 @@ export default class extends Page {
     async run() {
 
         await using page = await BrowserPage.create(this);
+
+        const { cookies } = this;
+        if (cookies) {
+            const parsedCookies = JSON.parse(cookies) as CookieData[];
+            await page.browserContext().setCookie(... parsedCookies);
+        }
 
         const timeout = Number(this.pageTimeout || 15000);
 
