@@ -53,7 +53,7 @@ export default class extends Page {
         await using page = await BrowserPage.create(this);
 
         const { cookies } = this;
-        if (cookies) {
+        if (cookies && cookies !== "undefined") {
             const parsedCookies = JSON.parse(cookies) as CookieData[];
             await page.browserContext().setCookie(... parsedCookies);
         }
