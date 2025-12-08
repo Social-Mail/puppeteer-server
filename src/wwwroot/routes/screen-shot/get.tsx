@@ -7,6 +7,8 @@ import BrowserPage from "../../../core/BrowserPage.js";
 import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
 import { CookieData } from "puppeteer-core";
 
+declare let document;
+
 export default class extends Page {
 
     @Query("url")
@@ -123,6 +125,9 @@ export default class extends Page {
                 contentType = "application/pdf";
                 outputBuffer = await page.pdf({});
                 break;
+            case "html":
+                contentType = "text/plain";
+                outputBuffer = Buffer.from(await page.evaluate(() => document.documentElement.outerHtml ), "utf-8");
             default:
                 throw new Error(`Output type ${output} not supported`);
         }
