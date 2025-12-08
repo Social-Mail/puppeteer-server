@@ -23,6 +23,9 @@ export default class extends Page {
     @Query("output")
     pageOutput: string;
 
+    @Query("evalScript")
+    pageEvalScript: string;
+
     @Query("test")
     pageTest: string;
 
@@ -77,6 +80,11 @@ export default class extends Page {
             waitUntil: "networkidle2",
             timeout,
         });
+
+        const { pageEvalScript } = this;
+        if (pageEvalScript) {
+            await page.evaluate(pageEvalScript);
+        }
 
         let now = Date.now();
         const end = now + timeout;
