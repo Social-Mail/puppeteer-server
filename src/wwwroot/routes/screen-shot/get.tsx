@@ -58,9 +58,16 @@ export default class extends Page {
         await using page = await BrowserPage.create(this);
 
         const { cookies } = this;
-        if (cookies && cookies !== "undefined") {
-            const parsedCookies = JSON.parse(cookies) as CookieData[];
-            await page.browserContext().setCookie(... parsedCookies);
+        if (cookies && cookies !== "undefined" && cookies !== "void 0") {
+            try {
+                const parsedCookies = JSON.parse(cookies) as CookieData[];
+                await page.browserContext().setCookie(... parsedCookies);
+            } catch (error) {
+                console.error(JSON.stringify({
+                    error: error.stack ?? error,
+                    cause: error.cause?.stack ?? error.cause?.toString()
+                }))
+            }
         }
 
         const timeout = Number(this.pageTimeout || 15000);
