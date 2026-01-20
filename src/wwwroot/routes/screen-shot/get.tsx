@@ -8,6 +8,7 @@ import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
 import { CookieData } from "puppeteer-core";
 
 declare let document;
+declare let window;
 
 export default class extends Page {
 
@@ -142,7 +143,7 @@ export default class extends Page {
                 break;
             case "html":
                 contentType = "text/plain";
-                outputBuffer = Buffer.from(await page.evaluate(() => document.documentElement.outerHtml ), "utf-8");
+                outputBuffer = Buffer.from(await page.evaluate(() => window.document.documentElement.outerHtml ), "utf-8");
             default:
                 throw new Error(`Output type ${output} not supported`);
         }
