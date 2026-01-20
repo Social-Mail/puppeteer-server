@@ -144,6 +144,7 @@ export default class extends Page {
             case "html":
                 contentType = "text/plain";
                 outputBuffer = Buffer.from(await page.content(), "utf-8");
+                break;
             default:
                 throw new Error(`Output type ${output} not supported`);
         }
