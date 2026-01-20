@@ -19,8 +19,8 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "@entity-access/entity-access": "^1.0.532",
-    "@entity-access/server-pages": "^1.1.574",
+    "@entity-access/entity-access": "^1.0.534",
+    "@entity-access/server-pages": "^1.1.578",
     "node-fetch": "^3.3.2",
     "puppeteer-core": "^24.7.2",
     "sharp": "^0.34.1",

@@ -20,4 +20,5 @@ server.build({
     trustProxy: false,
     acmeOptions: null,
     allowHTTP1: true,
+    http1Port: port
 }).catch(console.error);
