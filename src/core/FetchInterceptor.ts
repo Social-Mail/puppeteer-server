@@ -34,6 +34,8 @@ export class FetchInterceptor {
                     switch(e.resourceType()) {
                         case "stylesheet":
                         case "image":
+                        case "font":
+                        case "websocket":
                         case "media":
                             await e.abort("blockedbyclient");
                             return;
