@@ -17,7 +17,8 @@ export default class BrowserPage {
         pageWidth,
         pageHeight,
         dumpio = false,
-        deviceScaleFactor = 1
+        deviceScaleFactor = 1,
+        pageOutput
     }): Promise<Page & AsyncDisposable> {
         
         const browser = await puppeteer.launch({
@@ -34,7 +35,7 @@ export default class BrowserPage {
         deviceScaleFactor = Number(deviceScaleFactor);
         await page.setViewport({ width, height, deviceScaleFactor });
 
-        await FetchInterceptor.intercept(page);
+        await FetchInterceptor.intercept(page, pageOutput);
 
         page.on('console', async (message) => {
             if (message.text() != "JSHandle@error") {

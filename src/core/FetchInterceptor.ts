@@ -12,7 +12,8 @@ export class FetchInterceptor {
         return false;
     }
 
-    static async intercept(page: Page) {
+    static async intercept(page: Page, pageOutput) {
+        const isHtmlOnly = /html/i.test(pageOutput);
         await page.setRequestInterception(true);
         await page.on("request", async (e) => {
              try {
@@ -28,6 +29,16 @@ export class FetchInterceptor {
                     return;
                 }
 
+                if (isHtmlOnly) {
+                    // disable image,video,css fetch...
+                    switch(e.resourceType()) {
+                        case "stylesheet":
+                        case "image":
+                        case "media":
+                            await e.abort("blockedbyclient");
+                            return;
+                    }
+                }
 
                 if (e.hasPostData()) {
                     postBody = e.postData();
