@@ -1,5 +1,7 @@
 FROM ghcr.io/puppeteer/puppeteer:latest
 
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # USER root
 
 # RUN Server Now
