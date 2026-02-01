@@ -56,104 +56,112 @@ export default class extends Page {
 
     async run() {
 
-        await using page = await BrowserPage.create(this);
+        try {
 
-        const { cookies } = this;
-        if (cookies && cookies !== "undefined" && cookies !== "void 0") {
-            try {
-                const parsedCookies = JSON.parse(cookies) as CookieData[];
-                await page.browserContext().setCookie(... parsedCookies);
-            } catch (error) {
-                console.error(JSON.stringify({
-                    error: error.stack ?? error,
-                    cause: error.cause?.stack ?? error.cause?.toString()
-                }))
+            await using page = await BrowserPage.create(this);
+
+            const { cookies } = this;
+            if (cookies && cookies !== "undefined" && cookies !== "void 0") {
+                try {
+                    const parsedCookies = JSON.parse(cookies) as CookieData[];
+                    await page.browserContext().setCookie(... parsedCookies);
+                } catch (error) {
+                    console.error(JSON.stringify({
+                        error: error.stack ?? error,
+                        cause: error.cause?.stack ?? error.cause?.toString()
+                    }))
+                }
             }
-        }
 
-        const timeout = Number(this.pageTimeout || 15000);
+            const timeout = Number(this.pageTimeout || 15000);
 
-        const test = this.pageTest || "true";
+            const test = this.pageTest || "true";
 
-        const testDelay = Number(this.pageTestDelay || 1000);
+            const testDelay = Number(this.pageTestDelay || 1000);
 
-        if(this.mobile) {
-            const userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1 Mobile-Preview/1.1";
-            page.setUserAgent(userAgent);
-        } else if (this.userAgent) {
-            page.setUserAgent(this.userAgent);
-        }
-
-        await page.goto(this.pageUrl, {
-            waitUntil: "networkidle2",
-            timeout,
-        });
-
-        const { pageEvalScript } = this;
-        if (pageEvalScript) {
-            await page.evaluate(pageEvalScript);
-        }
-
-        let now = Date.now();
-        const end = now + timeout;
-
-        while(now < end) {
-            await sleep(testDelay);
-
-            const isTrue = (await page.evaluate(test)) as any;
-            if (/true/i.test(isTrue)) {
-                break;
+            if(this.mobile) {
+                const userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1 Mobile-Preview/1.1";
+                page.setUserAgent(userAgent);
+            } else if (this.userAgent) {
+                page.setUserAgent(this.userAgent);
             }
-        }
 
-        const output = this.pageOutput?.toLowerCase() || "webp"
-
-        let outputBuffer: Uint8Array;
-        let contentType: any;
-
-        if (this.viewPort) {
-            if (this.mobile) {
-                this.deviceScaleFactor ??= 2;
-            }
-            const {
-                pageWidth: width,
-                pageHeight: height,
-                deviceScaleFactor = this.mobile ? 2 : 1
-            } = this;
-            page.setViewport({
-                width,
-                height,
-                deviceScaleFactor
+            await page.goto(this.pageUrl, {
+                waitUntil: "networkidle2",
+                timeout,
             });
-        }
 
-        switch(output) {
-            case "webp":
-                contentType = "image/webp";
-                outputBuffer =
-                    await takeFullPageScreenshot(page, output);
-                break;
-            case "png":
-                contentType = "image/png";
-                outputBuffer = await takeFullPageScreenshot(page, output);
-                break;
-            case "pdf":
-                contentType = "application/pdf";
-                outputBuffer = await page.pdf({});
-                break;
-            case "html":
-                contentType = "text/plain";
-                outputBuffer = Buffer.from(await page.content(), "utf-8");
-                break;
-            default:
-                throw new Error(`Output type ${output} not supported`);
-        }
-
-        return Content.readable(Stream.Readable.from([outputBuffer]), {
-            status: 200,
-            headers: {
-                "content-type": contentType
+            const { pageEvalScript } = this;
+            if (pageEvalScript) {
+                await page.evaluate(pageEvalScript);
             }
-        });
+
+            let now = Date.now();
+            const end = now + timeout;
+
+            while(now < end) {
+                await sleep(testDelay);
+
+                const isTrue = (await page.evaluate(test)) as any;
+                if (/true/i.test(isTrue)) {
+                    break;
+                }
+            }
+
+            const output = this.pageOutput?.toLowerCase() || "webp"
+
+            let outputBuffer: Uint8Array;
+            let contentType: any;
+
+            if (this.viewPort) {
+                if (this.mobile) {
+                    this.deviceScaleFactor ??= 2;
+                }
+                const {
+                    pageWidth: width,
+                    pageHeight: height,
+                    deviceScaleFactor = this.mobile ? 2 : 1
+                } = this;
+                page.setViewport({
+                    width,
+                    height,
+                    deviceScaleFactor
+                });
+            }
+
+            switch(output) {
+                case "webp":
+                    contentType = "image/webp";
+                    outputBuffer =
+                        await takeFullPageScreenshot(page, output);
+                    break;
+                case "png":
+                    contentType = "image/png";
+                    outputBuffer = await takeFullPageScreenshot(page, output);
+                    break;
+                case "pdf":
+                    contentType = "application/pdf";
+                    outputBuffer = await page.pdf({});
+                    break;
+                case "html":
+                    contentType = "text/plain";
+                    outputBuffer = Buffer.from(await page.content(), "utf-8");
+                    break;
+                default:
+                    throw new Error(`Output type ${output} not supported`);
+            }
+
+            return Content.readable(Stream.Readable.from([outputBuffer]), {
+                status: 200,
+                headers: {
+                    "content-type": contentType
+                }
+            });
+        } catch (error) {
+            if(/failed to launch/i.test(error)) {
+                process.exit();
+            }
+            throw error;
+        }
     }
 }

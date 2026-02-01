@@ -44,8 +44,6 @@ export class FetchInterceptor {
 
                 if (e.hasPostData()) {
                     postBody = e.postData();
-                } else {
-                    console.log(`Fetching ${url}`);
                 }
 
                 if (!await this.isLocalHost(u.hostname)) {

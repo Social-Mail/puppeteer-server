@@ -51,7 +51,11 @@ export default class BrowserPage {
         });
 
         page.on('requestfailed', request => {
-            console.log(`url: ${request.url()}, errText: ${request.failure().errorText}, method: ${request.method()}`)
+            const errorText = request.failure().errorText;
+            if(/err_blocked_by_client/i.test(errorText)) {
+                return;
+            }
+            console.log(`url: ${request.url()}, errText: ${errorText}, method: ${request.method()}`)
         });
 
         page.on("error", console.error);
