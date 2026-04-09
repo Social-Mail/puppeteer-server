@@ -42,6 +42,9 @@ export default class extends Page {
     @Query.asBoolean("dumpio")
     dumpio: boolean;
 
+    @Query.asBoolean("fullPage")
+    fullPage: boolean;
+
     @Query.asBoolean
     mobile: boolean;
 
@@ -133,11 +136,11 @@ export default class extends Page {
                 case "webp":
                     contentType = "image/webp";
                     outputBuffer =
-                        await takeFullPageScreenshot(page, output);
+                        await takeFullPageScreenshot(page, this.fullPage || false, output);
                     break;
                 case "png":
                     contentType = "image/png";
-                    outputBuffer = await takeFullPageScreenshot(page, output);
+                    outputBuffer = await takeFullPageScreenshot(page, this.fullPage || false, output);
                     break;
                 case "pdf":
                     contentType = "application/pdf";

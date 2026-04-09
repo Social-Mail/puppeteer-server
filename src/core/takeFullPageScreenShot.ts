@@ -5,7 +5,12 @@ import sharp from "sharp";
 // https://issues.chromium.org/issues/41347676
 export const MAX_SIZE_PX = 16384;
 
-const takeFullPageScreenshot = async (page: Page, type: "webp" | "png") => {
+const takeFullPageScreenshot = async (page: Page, fullPage: boolean, type: "webp" | "png") => {
+
+  if (!fullPage) {
+    return await page.screenshot({ type });
+  }
+
   const pageHeight = await getPageHeight(page);
   const deviceScaleFactor = page.viewport()?.deviceScaleFactor ?? 1;
 
