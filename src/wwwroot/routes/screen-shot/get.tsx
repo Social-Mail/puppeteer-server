@@ -102,6 +102,8 @@ export default class extends Page {
                 timeout,
             });
 
+            await page.bringToFront();
+
             const { pageEvalScript, pageReadyScript } = this;
             if (pageEvalScript) {
                 await page.evaluate(pageEvalScript);
