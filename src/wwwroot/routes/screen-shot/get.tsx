@@ -108,11 +108,15 @@ export default class extends Page {
             }
 
             if(pageTestScript) {
-                await page.addScriptTag({
-                    type: "module",
-                    url: pageTestScript,
-                });
-                await page.evaluate("(window.isPageReady ? await window.isPageReady() : true)");
+                try {
+                    await page.addScriptTag({
+                        type: "module",
+                        url: pageTestScript,
+                    });
+                    await page.evaluate("(window.isPageReady ? await window.isPageReady() : true)");
+                } catch (error) {
+                    console.error(error);
+                }
 
             } else {
 
