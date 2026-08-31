@@ -28,8 +28,8 @@ export default class extends Page {
     @Query("evalScript")
     pageEvalScript: string;
 
-    @Query("testScript")
-    pageTestScript: string;
+    @Query("readyScript")
+    pageReadyScript: string;
 
     @Query("test")
     pageTest: string;
@@ -102,7 +102,7 @@ export default class extends Page {
                 timeout,
             });
 
-            const { pageEvalScript, pageTestScript } = this;
+            const { pageEvalScript, pageReadyScript: pageTestScript } = this;
             if (pageEvalScript) {
                 await page.evaluate(pageEvalScript);
             }
@@ -110,10 +110,9 @@ export default class extends Page {
             if(pageTestScript) {
                 await page.addScriptTag({
                     type: "module",
-                    url: pageTestScript
+                    url: pageTestScript,
                 });
-
-                await page.evaluate("(isPageReady ? await isPageReady() : true)");
+                await page.evaluate("(window.isPageReady ? await window.isPageReady() : true)");
 
             } else {
 
