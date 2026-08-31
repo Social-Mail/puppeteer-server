@@ -7,6 +7,7 @@ import { PuppeteerPath } from "./PuppeteerPath.js";
 import { defaultArgs } from "./defaultArgs.js";
 import { FetchInterceptor } from "./FetchInterceptor.js";
 import { Page } from "puppeteer-core";
+import { JsonLogger } from "./JsonLogger.js";
 
 const { executablePath } = PuppeteerPath;
 
@@ -40,14 +41,24 @@ export default class BrowserPage {
 
         page.on('console', async (message) => {
             if (message.text() != "JSHandle@error") {
-                console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`);
+                // console.log(`${message.type().substring(0, 3).toUpperCase()} ${message.text()}`);
+                JsonLogger.logError({
+                    url: page.url(),
+                    type: message.type().substring(0, 3).toUpperCase(),
+                    error: message.text(),
+                })
                 return;
             }
             const messages = await Promise.all(message.args().map((arg) => {
                 return arg.getProperty("message");
             }));
             
-            console.log(`${message.type().substring(0, 3).toUpperCase()} ${messages.filter(Boolean)}`);
+            // console.log(`${message.type().substring(0, 3).toUpperCase()} ${messages.filter(Boolean)}`);
+            JsonLogger.logError({
+                    url: page.url(),
+                    type: message.type().substring(0, 3).toUpperCase(),
+                    error: messages.filter(Boolean),
+                })
         });
 
         page.on('requestfailed', request => {
@@ -55,7 +66,7 @@ export default class BrowserPage {
             if(/err_blocked_by_client/i.test(errorText)) {
                 return;
             }
-            console.log(`url: ${request.url()}, errText: ${errorText}, method: ${request.method()}`)
+            JsonLogger.log({ url: request.url(), errorText, method: request.method()});
         });
 
         page.on("error", console.error);

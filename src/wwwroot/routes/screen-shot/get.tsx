@@ -7,6 +7,7 @@ import BrowserPage from "../../../core/BrowserPage.js";
 import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
 import { CookieData, Protocol } from "puppeteer-core";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
+import { JsonLogger } from "../../../core/JsonLogger.js";
 
 declare let document;
 declare let window;
@@ -77,10 +78,7 @@ export default class extends Page {
                     const parsedCookies = JSON.parse(cookies) as CookieData[];
                     await page.browserContext().setCookie(... parsedCookies);
                 } catch (error) {
-                    console.error(JSON.stringify({
-                        error: error.stack ?? error,
-                        cause: error.cause?.stack ?? error.cause?.toString()
-                    }))
+                    JsonLogger.logError( error, { url: this.pageUrl });
                 }
             }
 
@@ -120,7 +118,7 @@ export default class extends Page {
                     pageReadyScriptExecuted = true;
                     await page.evaluate("(window.isPageReady ? await window.isPageReady() : true)");
                 } catch (error) {
-                    console.error(error);
+                    JsonLogger.logError( error, { url: this.pageUrl });
                 }
 
             }
