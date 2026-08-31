@@ -49,6 +49,10 @@ const captureLargeScreenshot = async (page: Page, type: "webp" | "png") => {
       scaledPageHeight - currentYPosition
     );
 
+    if(clipHeight <= 0) {
+      break;
+    }
+
     const screenshotPromise = page.screenshot({
       clip: {
         x: 0,
