@@ -28,6 +28,9 @@ export default class extends Page {
     @Query("evalScript")
     pageEvalScript: string;
 
+    @Query("testScript")
+    pageTestScript: string;
+
     @Query("test")
     pageTest: string;
 
@@ -99,20 +102,31 @@ export default class extends Page {
                 timeout,
             });
 
-            const { pageEvalScript } = this;
+            const { pageEvalScript, pageTestScript } = this;
             if (pageEvalScript) {
                 await page.evaluate(pageEvalScript);
             }
 
-            let now = Date.now();
-            const end = now + timeout;
+            if(pageTestScript) {
+                await page.addScriptTag({
+                    type: "module",
+                    url: pageTestScript
+                });
 
-            while(now < end) {
-                await sleep(testDelay);
+                await page.evaluate("(isPageReady ? await isPageReady() : true)");
 
-                const isTrue = (await page.evaluate(test)) as any;
-                if (/true/i.test(isTrue)) {
-                    break;
+            } else {
+
+                let now = Date.now();
+                const end = now + timeout;
+
+                while(now < end) {
+                    await sleep(testDelay);
+
+                    const isTrue = (await page.evaluate(test)) as any;
+                    if (/true/i.test(isTrue)) {
+                        break;
+                    }
                 }
             }
 
