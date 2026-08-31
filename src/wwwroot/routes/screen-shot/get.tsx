@@ -60,7 +60,7 @@ export default class extends Page {
 
     async run() {
 
-        if(this.pageUrl) {
+        if(!this.pageUrl) {
             throw new EntityAccessError("url not specified");
         }
 
