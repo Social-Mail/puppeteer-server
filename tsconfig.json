@@ -10,6 +10,7 @@
         "skipDefaultLibCheck": true,
         "skipLibCheck": true,
         "strict": false,
+        "tsBuildInfoFile": "./dist/.tsbuildinfo",
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "jsxFactory": "XNode.create",
