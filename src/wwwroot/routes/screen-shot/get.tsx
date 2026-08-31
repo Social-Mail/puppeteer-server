@@ -102,23 +102,28 @@ export default class extends Page {
                 timeout,
             });
 
-            const { pageEvalScript, pageReadyScript: pageTestScript } = this;
+            const { pageEvalScript, pageReadyScript } = this;
             if (pageEvalScript) {
                 await page.evaluate(pageEvalScript);
             }
 
-            if(pageTestScript) {
+            let pageReadyScriptExecuted = false;
+
+            if(pageReadyScript) {
                 try {
                     await page.addScriptTag({
                         type: "module",
-                        url: pageTestScript,
+                        url: pageReadyScript,
                     });
+                    pageReadyScriptExecuted = true;
                     await page.evaluate("(window.isPageReady ? await window.isPageReady() : true)");
                 } catch (error) {
                     console.error(error);
                 }
 
-            } else {
+            }
+
+            if(!pageReadyScriptExecuted) {
 
                 let now = Date.now();
                 const end = now + timeout;
