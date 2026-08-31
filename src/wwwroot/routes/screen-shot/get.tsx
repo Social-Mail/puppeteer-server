@@ -5,7 +5,8 @@ import Content from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import BrowserPage from "../../../core/BrowserPage.js";
 import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
-import { CookieData } from "puppeteer-core";
+import { CookieData, Protocol } from "puppeteer-core";
+import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 
 declare let document;
 declare let window;
@@ -58,6 +59,10 @@ export default class extends Page {
     userAgent: string;
 
     async run() {
+
+        if(this.pageUrl) {
+            throw new EntityAccessError("url not specified");
+        }
 
         try {
 
