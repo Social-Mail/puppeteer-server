@@ -116,7 +116,7 @@ export default class extends Page {
                         url: pageReadyScript,
                     });
                     pageReadyScriptExecuted = true;
-                    await page.evaluate("(window.isPageReady ? await window.isPageReady() : true)");
+                    await page.evaluate("(window.isPageReady ? window.isPageReady() : true)");
                 } catch (error) {
                     JsonLogger.logError( error, { url: this.pageUrl });
                 }
