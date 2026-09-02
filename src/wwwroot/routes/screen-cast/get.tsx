@@ -154,6 +154,9 @@ export default class extends Page {
 
             await cast.stop();
 
+            if(!tf.contentSize) {
+                throw new EntityAccessError("Screen cast failed");
+            }
 
             return new TempFileResult(tf, {
                 contentType: "video/webm"
