@@ -114,7 +114,7 @@ export default class extends Page {
             await page.bringToFront();
 
             await page.goto(this.pageUrl, {
-                waitUntil: "domcontentloaded",
+                waitUntil: "networkidle2",
                 timeout,
             });
 
@@ -139,11 +139,6 @@ export default class extends Page {
                 fps: 4,
                 scale: 0.5,
                 path: tf.path as any
-            });
-
-            await page.waitForNavigation({
-                waitUntil: "networkidle2",
-                timeout
             });
 
             const { pageEvalScript } = this;
