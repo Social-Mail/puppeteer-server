@@ -49,6 +49,9 @@ export default class extends Page {
     @Query.asBoolean
     mobile: boolean;
 
+    @Query.asNumber
+    fps: number = 8;
+
     @Query
     cookies: string;
 
@@ -135,8 +138,10 @@ export default class extends Page {
 
             }
 
+            const { fps } = this;
+
             const cast = await page.screencast({
-                fps: 4,
+                fps,
                 scale: 0.5,
                 path: tf.path as any
             });
