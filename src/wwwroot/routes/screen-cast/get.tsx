@@ -145,7 +145,7 @@ export default class extends Page {
                 scale: 0.5,
                 quality: 40,
                 path: tf.path as any
-            });
+            });        
 
             const { pageEvalScript } = this;
             if (pageEvalScript) {
@@ -159,6 +159,8 @@ export default class extends Page {
             }
 
             await cast.stop();
+
+            await sleep(3000);
 
             if(!tf.contentSize) {
                 throw new EntityAccessError("Screen cast failed");
