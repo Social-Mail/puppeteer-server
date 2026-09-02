@@ -102,9 +102,9 @@ export default class extends Page {
                 await page.evaluate(pageEvalScript);
             }
 
-            const { pageStopScript = `7000`  } = this;
+            const { pageStopScript } = this;
 
-            const till = Number(await page.evaluate(pageStopScript));
+            let pageStopScriptExecuted = false;
 
             const fileName = Date.now() + ".webm";
             const tf = await this.diskCache.createTempFileDeleteOnExit([fileName], fileName, "video/webm");
@@ -133,7 +133,23 @@ export default class extends Page {
                 path: tf.path as any
             });
 
-            await sleep(till);
+            if(pageStopScript) {
+                try {
+                    await page.addScriptTag({
+                        type: "module",
+                        url: pageStopScript,
+                    });
+                    pageStopScriptExecuted = true;
+                    await page.evaluate("(window.stopPreviewRecording ? window.stopPreviewRecording() : true)");
+                } catch (error) {
+                    JsonLogger.logError( error, { url: this.pageUrl });
+                }
+
+            }
+
+            if(!pageStopScriptExecuted) {
+                await sleep(7000);
+            }
 
             await cast.stop();
 
