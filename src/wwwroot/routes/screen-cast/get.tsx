@@ -50,7 +50,7 @@ export default class extends Page {
     mobile: boolean;
 
     @Query.asNumber
-    fps: number = 8;
+    fps: number = 15;
 
     @Query
     cookies: string;
