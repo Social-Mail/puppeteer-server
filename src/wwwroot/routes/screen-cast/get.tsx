@@ -90,22 +90,6 @@ export default class extends Page {
                 page.setUserAgent(this.userAgent);
             }
 
-            await page.goto(this.pageUrl, {
-                waitUntil: "networkidle2",
-                timeout,
-            });
-
-            await page.bringToFront();
-
-            const { pageEvalScript } = this;
-            if (pageEvalScript) {
-                await page.evaluate(pageEvalScript);
-            }
-
-            const { pageStopScript } = this;
-
-            let pageStopScriptExecuted = false;
-
             const fileName = Date.now() + ".webm";
             const tf = await this.diskCache.createTempFileDeleteOnExit([fileName], fileName, "video/webm");
 
@@ -127,11 +111,16 @@ export default class extends Page {
                 });
             }            
 
-            const cast = await page.screencast({
-                fps: 4,
-                scale: 0.5,
-                path: tf.path as any
+            await page.bringToFront();
+
+            await page.goto(this.pageUrl, {
+                waitUntil: "domcontentloaded",
+                timeout,
             });
+
+            const { pageStopScript } = this;
+
+            let pageStopScriptExecuted = false;
 
             if(pageStopScript) {
                 try {
@@ -140,14 +129,31 @@ export default class extends Page {
                         url: pageStopScript,
                     });
                     pageStopScriptExecuted = true;
-                    await page.evaluate("(window.stopPreviewRecording ? window.stopPreviewRecording() : true)");
                 } catch (error) {
                     JsonLogger.logError( error, { url: this.pageUrl });
                 }
 
             }
 
-            if(!pageStopScriptExecuted) {
+            const cast = await page.screencast({
+                fps: 4,
+                scale: 0.5,
+                path: tf.path as any
+            });
+
+            await page.waitForNavigation({
+                waitUntil: "networkidle2",
+                timeout
+            });
+
+            const { pageEvalScript } = this;
+            if (pageEvalScript) {
+                await page.evaluate(pageEvalScript);
+            }
+
+            if(pageStopScriptExecuted) {
+                await page.evaluate("(window.stopPreviewRecording ? window.stopPreviewRecording() : true)");
+            } else {
                 await sleep(7000);
             }
 
