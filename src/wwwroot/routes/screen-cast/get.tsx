@@ -94,7 +94,7 @@ export default class extends Page {
             }
 
             const fileName = Date.now() + ".webm";
-            const tf = await this.diskCache.createTempFileDeleteOnExit([fileName], fileName, "video/webm");
+            const tf = await this.diskCache.getTempFile(fileName, "video/webm");
 
             ServiceProvider.from(this).registerDisposable(tf);
 
