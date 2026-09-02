@@ -143,6 +143,7 @@ export default class extends Page {
             const cast = await page.screencast({
                 fps,
                 scale: 0.5,
+                quality: 40,
                 path: tf.path as any
             });
 
