@@ -7,7 +7,7 @@ import { randomUUID } from "crypto";
 import BaseDiskCache from "@entity-access/server-pages/dist/cache/BaseDiskCache.js";
 
 
-const cacheRoot = "/tmp/puppeteer-server/tmp"
+const cacheRoot = process.env.TMP_PATH || "/tmp/puppeteer-server/tmp";
 
 const tempSize = 10*1024*1024*1024;
 const minSize = tempSize / 2;
