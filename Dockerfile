@@ -3,6 +3,16 @@ FROM ghcr.io/puppeteer/puppeteer:latest
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
 # USER root
+# Elevate privileges to root to install packages
+USER root
+
+# Install FFmpeg and clean up apt caches to minimize bloat
+RUN apt-get update && \
+    apt-get install -y ffmpeg --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+USER $PPTRUSER_UID
 
 # RUN Server Now
 # WORKDIR /app

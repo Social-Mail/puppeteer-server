@@ -1,13 +1,15 @@
 import Page from "@entity-access/server-pages/dist/Page.js";
 import { Query } from "@entity-access/server-pages/dist/core/Query.js";
 import { sleep } from "../../../core/sleep.js";
-import Content from "@entity-access/server-pages/dist/Content.js";
+import Content, { TempFileResult } from "@entity-access/server-pages/dist/Content.js";
 import Stream from "stream";
 import BrowserPage from "../../../core/BrowserPage.js";
 import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
 import { CookieData, Protocol } from "puppeteer-core";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { JsonLogger } from "../../../core/JsonLogger.js";
+import Inject, { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
+import DiskCacheService from "../../../services/DiskCache.js";
 
 declare let document;
 declare let window;
@@ -29,14 +31,8 @@ export default class extends Page {
     @Query("evalScript")
     pageEvalScript: string;
 
-    @Query("readyScript")
-    pageReadyScript: string;
-
-    @Query("test")
-    pageTest: string;
-
-    @Query("testDelay")
-    pageTestDelay: string;
+    @Query("stopScript")
+    pageStopScript; string;
 
     @Query.asNumber("timeout")
     pageTimeout: number;
@@ -62,6 +58,9 @@ export default class extends Page {
     @Query
     userAgent: string;
 
+    @Inject
+    private diskCache: DiskCacheService;
+
     async run() {
 
         if(!this.pageUrl) {
@@ -84,16 +83,33 @@ export default class extends Page {
 
             const timeout = Number(this.pageTimeout || 15000);
 
-            const test = this.pageTest || "true";
-
-            const testDelay = Number(this.pageTestDelay || 1000);
-
             if(this.mobile) {
                 const userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1 Mobile-Preview/1.1";
                 page.setUserAgent(userAgent);
             } else if (this.userAgent) {
                 page.setUserAgent(this.userAgent);
             }
+
+            await page.goto(this.pageUrl, {
+                waitUntil: "networkidle2",
+                timeout,
+            });
+
+            await page.bringToFront();
+
+            const { pageEvalScript } = this;
+            if (pageEvalScript) {
+                await page.evaluate(pageEvalScript);
+            }
+
+            const { pageStopScript = `7000`  } = this;
+
+            const till = Number(await page.evaluate(pageStopScript));
+
+            const fileName = Date.now() + ".webm";
+            const tf = await this.diskCache.createTempFileDeleteOnExit([fileName], fileName, "video/webm");
+
+            ServiceProvider.from(this).registerDisposable(tf);
 
             if (this.viewPort) {
                 if (this.mobile) {
@@ -111,81 +127,19 @@ export default class extends Page {
                 });
             }            
 
-            await page.goto(this.pageUrl, {
-                waitUntil: "networkidle2",
-                timeout,
+            const cast = await page.screencast({
+                fps: 4,
+                scale: 0.5,
+                path: tf.path as any
             });
 
-            await page.bringToFront();
+            await sleep(till);
 
-            const { pageEvalScript, pageReadyScript } = this;
-            if (pageEvalScript) {
-                await page.evaluate(pageEvalScript);
-            }
+            await cast.stop();
 
-            let pageReadyScriptExecuted = false;
 
-            if(pageReadyScript) {
-                try {
-                    await page.addScriptTag({
-                        type: "module",
-                        url: pageReadyScript,
-                    });
-                    pageReadyScriptExecuted = true;
-                    await page.evaluate("(window.isPageReady ? window.isPageReady() : true)");
-                } catch (error) {
-                    JsonLogger.logError( error, { url: this.pageUrl });
-                }
-
-            }
-
-            if(!pageReadyScriptExecuted) {
-
-                let now = Date.now();
-                const end = now + timeout;
-
-                while(now < end) {
-                    await sleep(testDelay);
-
-                    const isTrue = (await page.evaluate(test)) as any;
-                    if (/true/i.test(isTrue)) {
-                        break;
-                    }
-                }
-            }
-
-            const output = this.pageOutput?.toLowerCase() || "webp"
-
-            let outputBuffer: Uint8Array;
-            let contentType: any;
-
-            switch(output) {
-                case "webp":
-                    contentType = "image/webp";
-                    outputBuffer =
-                        await takeFullPageScreenshot(page, this.fullPage || false, output);
-                    break;
-                case "png":
-                    contentType = "image/png";
-                    outputBuffer = await takeFullPageScreenshot(page, this.fullPage || false, output);
-                    break;
-                case "pdf":
-                    contentType = "application/pdf";
-                    outputBuffer = await page.pdf({});
-                    break;
-                case "html":
-                    contentType = "text/plain";
-                    outputBuffer = Buffer.from(await page.content(), "utf-8");
-                    break;
-                default:
-                    throw new Error(`Output type ${output} not supported`);
-            }
-
-            return Content.readable(Stream.Readable.from([outputBuffer]), {
-                status: 200,
-                headers: {
-                    "content-type": contentType
-                }
+            return new TempFileResult(tf, {
+                contentType: "video/webm"
             });
         } catch (error) {
             if(/failed to launch/i.test(error)) {
