@@ -181,6 +181,12 @@ export default class extends Page {
                     throw new Error(`Output type ${output} not supported`);
             }
 
+            JsonLogger.log({
+                action: "screen-shot-saved",
+                url: this.pageUrl,
+            });
+
+
             return Content.readable(Stream.Readable.from([outputBuffer]), {
                 status: 200,
                 headers: {

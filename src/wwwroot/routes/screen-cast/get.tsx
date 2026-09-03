@@ -73,6 +73,11 @@ export default class extends Page {
 
         try {
 
+            JsonLogger.log({
+                action: "screen-cast",
+                url: this.pageUrl,
+            });
+
             await using page = await BrowserPage.create(this);
 
             const { cookies } = this;
@@ -180,6 +185,11 @@ export default class extends Page {
                 setTimeout(() => process.exit(),100);
                 throw new EntityAccessError("Screen cast failed");
             }
+
+            JsonLogger.log({
+                action: "screen-cast-saved",
+                url: this.pageUrl,
+            });
 
             return new TempFileResult(tf, {
                 contentType: "video/webm"
