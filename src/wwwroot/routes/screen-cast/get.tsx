@@ -165,6 +165,9 @@ export default class extends Page {
             await sleep(3000);
 
             if(!tf.contentSize) {
+                // we need to restart the process
+                // as every subsequent video calls will fail
+                setTimeout(() => process.exit(),100);
                 throw new EntityAccessError("Screen cast failed");
             }
 
