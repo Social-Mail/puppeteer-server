@@ -23,7 +23,7 @@ export default class BrowserPage {
     }): Promise<Page & AsyncDisposable> {
         
         const browser = await puppeteer.launch({
-            headless: "shell",
+            headless: true,
             executablePath,
             acceptInsecureCerts: true,
             args: [... defaultArgs],
