@@ -10,6 +10,7 @@ import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAc
 import { JsonLogger } from "../../../core/JsonLogger.js";
 import Inject, { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import DiskCacheService from "../../../services/DiskCache.js";
+import { PuppeteerVideoRecorder } from "../../../core/PuppeteerVideoRecorder.js";
 
 declare let document;
 declare let window;
@@ -140,12 +141,21 @@ export default class extends Page {
 
             const { fps } = this;
 
-            const cast = await page.screencast({
+            const recorder = new PuppeteerVideoRecorder({
+                outputFile: tf.path,
+                page,
                 fps,
-                scale: 0.5,
-                quality: 40,
-                path: tf.path as any
-            });        
+                scale: 0.5
+            });
+
+            await recorder.start();
+
+            // const cast = await page.screencast({
+            //     fps,
+            //     scale: 0.5,
+            //     quality: 40,
+            //     path: tf.path as any
+            // });        
 
             const { pageEvalScript } = this;
             if (pageEvalScript) {
@@ -158,9 +168,9 @@ export default class extends Page {
                 await sleep(7000);
             }
 
-            await cast.stop();
+            await recorder.stop();
 
-            await cast[Symbol.asyncDispose]();
+            // await cast[Symbol.asyncDispose]();
 
             await sleep(3000);
 
