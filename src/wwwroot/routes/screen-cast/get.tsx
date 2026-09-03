@@ -160,6 +160,8 @@ export default class extends Page {
 
             await cast.stop();
 
+            await cast[Symbol.asyncDispose]();
+
             await sleep(3000);
 
             if(!tf.contentSize) {
