@@ -11,6 +11,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+USER pptruser
 # 3. Establish a standard workspace in the user's home directory
 WORKDIR /home/pptruser/app
 
