@@ -41,6 +41,9 @@ export default class extends Page {
     @Query.asNumber("timeout")
     pageTimeout: number;
 
+    @Query.asNumber("timezone")
+    timezone: string;
+
     @Query.asNumber("deviceScaleFactor")
     deviceScaleFactor: number;
 
@@ -109,7 +112,12 @@ export default class extends Page {
                     height,
                     deviceScaleFactor
                 });
-            }            
+            }      
+            
+            const { timezone } = this;
+            if(timezone) {
+                await page.emulateTimezone(timezone);
+            }
 
             await page.goto(this.pageUrl, {
                 waitUntil: "networkidle2",
