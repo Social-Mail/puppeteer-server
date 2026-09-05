@@ -26,9 +26,6 @@ export default class BrowserPage {
         const env = { ... process.env };
         if(timezone) {
             env.TZ = timezone;
-            JsonLogger.log({
-                timezone
-            })
         }
         
         const browser = await puppeteer.launch({
