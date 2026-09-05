@@ -85,6 +85,14 @@ export default class extends Page {
                 }
             }
 
+            const { timezone } = this;
+            if(timezone) {
+                JsonLogger.log({
+                    timezone
+                })
+                await page.emulateTimezone(timezone);
+            }
+
             const timeout = Number(this.pageTimeout || 15000);
 
             const test = this.pageTest || "true";
@@ -114,11 +122,6 @@ export default class extends Page {
                 });
             }      
             
-            const { timezone } = this;
-            if(timezone) {
-                await page.emulateTimezone(timezone);
-            }
-
             await page.goto(this.pageUrl, {
                 waitUntil: "networkidle2",
                 timeout,
