@@ -85,14 +85,6 @@ export default class extends Page {
                 }
             }
 
-            const { timezone } = this;
-            if(timezone) {
-                JsonLogger.log({
-                    timezone
-                })
-                await page.emulateTimezone(timezone);
-            }
-
             const timeout = Number(this.pageTimeout || 15000);
 
             const test = this.pageTest || "true";

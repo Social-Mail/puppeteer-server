@@ -19,15 +19,22 @@ export default class BrowserPage {
         pageHeight,
         dumpio = false,
         deviceScaleFactor = 1,
+        timezone= void 0,
         pageOutput
     }): Promise<Page & AsyncDisposable> {
+
+        const env = { ... process.env };
+        if(timezone) {
+            env.TZ = timezone;
+        }
         
         const browser = await puppeteer.launch({
             headless: true,
             executablePath,
             acceptInsecureCerts: true,
             args: [... defaultArgs],
-            dumpio
+            dumpio,
+            env
         });
 
         const page = await browser.newPage();
