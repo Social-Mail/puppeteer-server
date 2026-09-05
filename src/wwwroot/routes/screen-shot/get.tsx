@@ -41,7 +41,7 @@ export default class extends Page {
     @Query.asNumber("timeout")
     pageTimeout: number;
 
-    @Query.asNumber("timezone")
+    @Query("timezone")
     timezone: string;
 
     @Query.asNumber("deviceScaleFactor")
