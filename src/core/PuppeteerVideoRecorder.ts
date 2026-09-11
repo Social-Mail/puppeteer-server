@@ -1,6 +1,8 @@
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { spawn } from 'child_process';
 import { CDPSession, Page } from 'puppeteer-core';
-import { Writable } from 'stream';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as os from 'os';
 
 export interface VideoRecorderOptions {
   page: Page;
@@ -12,92 +14,93 @@ export interface VideoRecorderOptions {
 export class PuppeteerVideoRecorder {
   private page: Page;
   private outputFile: string;
-  private fps: number;
   private scale: number;
   
   private client: CDPSession | null = null;
-  private ffmpegProcess: ChildProcessWithoutNullStreams | null = null;
-  private ffmpegStdin: Writable | null = null;
   private isRecording: boolean = false;
+
+  // Track session assets
+  private tmpDir: string = '';
+  private concatScriptLines: string[] = [];
+  private lastFrameFile: string | null = null;
+  private lastFrameTimestamp: number | null = null;
+  private videoDimensions: { width: number; height: number } = { width: 0, height: 0 };
 
   constructor(options: VideoRecorderOptions) {
     this.page = options.page;
     this.outputFile = options.outputFile;
-    this.fps = options.fps ?? 30;
     this.scale = options.scale ?? 1;
   }
 
   /**
-   * Starts recording the Puppeteer page.
+   * Starts recording by saving raw frames asynchronously and capturing timestamps.
    */
   async start(): Promise<void> {
     if (this.isRecording) {
       throw new Error('Recording is already in progress.');
     }
 
-    // 1. Derive dimensions from the viewport
     const viewport = this.page.viewport();
     if (!viewport) {
       throw new Error('Page viewport is not defined. Ensure page.setViewport() was called.');
     }
 
+    // 1. Calculate and store video dimensions for the compilation step
     const width = Math.round(viewport.width * this.scale);
     const height = Math.round(viewport.height * this.scale);
+    this.videoDimensions = {
+      width: width % 2 === 0 ? width : width + 1,
+      height: height % 2 === 0 ? height : height + 1
+    };
 
-    // Ensure dimensions are even numbers (required by many video codecs like VP8/VP9)
-    const videoWidth = width % 2 === 0 ? width : width + 1;
-    const videoHeight = height % 2 === 0 ? height : height + 1;
-
-    // 2. Initialize FFmpeg process tailored for WebM (VP8) output
-    this.ffmpegProcess = spawn('ffmpeg', [
-      '-y',                       // Overwrite output file if it exists
-      '-f', 'image2pipe',         // Input format is a pipe of images
-      '-vcodec', 'mjpeg',         // Puppeteer outputs JPEG chunks by default
-      '-r', `${this.fps}`,        // Framerate of the input
-      '-i', '-',                  // Read input from stdin
-      '-vcodec', 'libvpx',        // WebM standard video codec (VP8)
-      '-crf', '30',               // Constant Rate Factor (lower means better quality, 4-63)
-      '-b:v', '1M',               // Video bitrate
-      '-vf', `scale=${videoWidth}:${videoHeight}`, // Explicit scaling step
-      '-pix_fmt', 'yuv420p',      // Ensure compatibility with standard players
-      this.outputFile
-    ]);
-
-    this.ffmpegStdin = this.ffmpegProcess.stdin;
-
-    // Handle FFmpeg process errors/logging
-    this.ffmpegProcess.stderr.on('data', (data) => {
-      // Uncomment for debugging FFmpeg internal output:
-      // console.log(`[FFmpeg Log]: ${data.toString()}`);
-    });
-
-    this.ffmpegProcess.on('error', (err) => {
-      console.error('FFmpeg process error:', err);
-    });
-
+    // 2. Initialize a clean state with async directory creation
+    this.tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'puppeteer-frames-'));
+    this.concatScriptLines = [];
+    this.lastFrameFile = null;
+    this.lastFrameTimestamp = null;
     this.isRecording = true;
 
-    // 3. Connect to Chrome DevTools Protocol to capture the screencast
-    this.client = await this.page.target().createCDPSession();
+    // 3. Connect to CDP Session
+    this.client = await this.page.createCDPSession();
     
-    // Listen for frame metadata chunks from Chrome
     this.client.on('Page.screencastFrame', async (event) => {
-      if (!this.isRecording || !this.ffmpegStdin) {
+      if (!this.isRecording) {
         if (this.client) {
           await this.client.send('Page.screencastFrameAck', { sessionId: event.sessionId }).catch(() => {});
         }
         return;
       }
 
-      // Convert the base64 chunk straight to binary buffer and pipe to FFmpeg
-      const buffer = Buffer.from(event.data, 'base64');
-      this.ffmpegStdin.write(buffer);
+      const currentTimestamp = event.metadata.timestamp;
+      const currentBuffer = Buffer.from(event.data, 'base64');
+      
+      // Save frame asset asynchronously using non-blocking I/O
+      const currentFrameFile = path.join(this.tmpDir, `frame_${currentTimestamp}.jpg`);
+      
+      try {
+        await fs.writeFile(currentFrameFile, currentBuffer);
 
-      // Acknowledge the frame so Chrome sends the next one
-      await this.client.send('Page.screencastFrameAck', { sessionId: event.sessionId }).catch(() => {});
+        if (this.lastFrameTimestamp !== null && this.lastFrameFile !== null) {
+          let duration = currentTimestamp - this.lastFrameTimestamp;
+          if (duration <= 0) duration = 0.033; // 30fps fallback for microsecond variance
+
+          // Buffer the text lines in memory
+          this.concatScriptLines.push(`file '${this.lastFrameFile}'`);
+          this.concatScriptLines.push(`duration ${duration.toFixed(6)}`);
+        }
+
+        this.lastFrameTimestamp = currentTimestamp;
+        this.lastFrameFile = currentFrameFile;
+      } catch (err) {
+        console.error('Failed to write frame to disk asynchronously:', err);
+      } finally {
+        // Always acknowledge the frame so Chrome releases the next one immediately
+        if (this.client) {
+          await this.client.send('Page.screencastFrameAck', { sessionId: event.sessionId }).catch(() => {});
+        }
+      }
     });
 
-    // Start casting frames
     await this.client.send('Page.startScreencast', {
       format: 'jpeg',
       quality: 80,
@@ -106,7 +109,7 @@ export class PuppeteerVideoRecorder {
   }
 
   /**
-   * Stops recording and clean up processes. Resolves when the file is safely saved.
+   * Stops recording, writes the playlist script, and compiles the video out-of-band.
    */
   async stop(): Promise<void> {
     if (!this.isRecording) {
@@ -115,28 +118,68 @@ export class PuppeteerVideoRecorder {
 
     this.isRecording = false;
 
-    // 1. Stop Chrome screencast and detach session
+    // 1. Instantly detach from Chrome to stop incoming frame events
     if (this.client) {
       await this.client.send('Page.stopScreencast').catch(() => {});
       await this.client.detach().catch(() => {});
       this.client = null;
     }
 
-    // 2. Safely close FFmpeg stream and wait for exit code
-    return new Promise<void>((resolve) => {
-      if (this.ffmpegStdin) {
-        this.ffmpegStdin.end(); // Closing stdin signals FFmpeg to finish encoding
-      }
+    // 2. Append the trailing final frame to the text stack
+    if (this.lastFrameFile) {
+      this.concatScriptLines.push(`file '${this.lastFrameFile}'`);
+      this.concatScriptLines.push(`duration 0.033`);
+    }
 
-      if (this.ffmpegProcess) {
-        this.ffmpegProcess.on('close', () => {
-          this.ffmpegProcess = null;
-          this.ffmpegStdin = null;
+    // If no frames were captured, clean up and exit early
+    if (this.concatScriptLines.length === 0) {
+      await fs.rm(this.tmpDir, { recursive: true, force: true }).catch(() => {});
+      return;
+    }
+
+    // 3. Write out the compilation recipe file asynchronously
+    const scriptPath = path.join(this.tmpDir, 'input.txt');
+    await fs.writeFile(scriptPath, this.concatScriptLines.join('\n'));
+
+    // 4. Run FFmpeg asynchronously now that your critical Puppeteer interactions are over
+    return new Promise<void>((resolve, reject) => {
+      const ffmpegProcess = spawn('ffmpeg', [
+        '-y',
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', scriptPath,                   
+        '-vcodec', 'libvpx',
+        '-crf', '30',
+        '-b:v', '1M',
+        '-vf', `scale=${this.videoDimensions.width}:${this.videoDimensions.height}`, 
+        '-pix_fmt', 'yuv420p',
+        this.outputFile
+      ]);
+
+      ffmpegProcess.on('error', async (err) => {
+        await this.cleanupTempDir();
+        reject(err);
+      });
+
+      ffmpegProcess.on('close', async (code) => {
+        await this.cleanupTempDir();
+        if (code === 0) {
           resolve();
-        });
-      } else {
-        resolve();
-      }
+        } else {
+          reject(new Error(`FFmpeg processing failed with exit code ${code}`));
+        }
+      });
     });
+  }
+
+  /**
+   * Asynchronously removes the temporary directory containing raw JPEGs and text manifests.
+   */
+  private async cleanupTempDir(): Promise<void> {
+    try {
+      await fs.rm(this.tmpDir, { recursive: true, force: true });
+    } catch (err) {
+      console.error('Failed cleaning up recording frames:', err);
+    }
   }
 }
