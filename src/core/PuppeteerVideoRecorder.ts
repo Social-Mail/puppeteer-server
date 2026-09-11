@@ -3,6 +3,8 @@ import { CDPSession, Page } from 'puppeteer-core';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { randomInt } from 'crypto';
+import { newID } from './newID.js';
 
 export interface VideoRecorderOptions {
   page: Page;
@@ -54,7 +56,7 @@ export class PuppeteerVideoRecorder {
     };
 
     // 2. Initialize a clean state with async directory creation
-    this.tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'puppeteer-frames-'));
+    this.tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), `puppeteer-frames-${newID()}`));
     this.concatScriptLines = [];
     this.lastFrameFile = null;
     this.lastFrameTimestamp = null;
