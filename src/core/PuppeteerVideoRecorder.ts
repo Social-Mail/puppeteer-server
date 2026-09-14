@@ -42,6 +42,7 @@ export class PuppeteerVideoRecorder {
       throw new Error('Recording is already in progress.');
     }
 
+
     const viewport = this.page.viewport();
     if (!viewport) {
       throw new Error('Page viewport is not defined. Ensure page.setViewport() was called.');
@@ -105,7 +106,7 @@ export class PuppeteerVideoRecorder {
 
     await this.client.send('Page.startScreencast', {
       format: 'jpeg',
-      quality: 80,
+      quality: 90,
       everyNthFrame: 1
     });
   }
