@@ -155,6 +155,12 @@ export default class extends Page {
             const otf = await this.diskCache.getTempFile(`${newID()}.webm`, "video/webm");
             ServiceProvider.from(this).registerDisposable(otf);
 
+            JsonLogger.log({
+                action: "screen-cast",
+                url: this.pageUrl,
+                path: otf.path
+            });
+
             const recorder = await page.record({
                 audio: false,
                 fps,
