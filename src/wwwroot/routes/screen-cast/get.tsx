@@ -11,6 +11,8 @@ import { JsonLogger } from "../../../core/JsonLogger.js";
 import Inject, { ServiceProvider } from "@entity-access/entity-access/dist/di/di.js";
 import DiskCacheService from "../../../services/DiskCache.js";
 import { PuppeteerVideoRecorder } from "../../../core/PuppeteerVideoRecorder.js";
+import { newID } from "../../../core/newID.js";
+import { spawnPromise } from "../../../core/spawnPromise.js";
 
 declare let document;
 declare let window;
@@ -99,11 +101,6 @@ export default class extends Page {
                 page.setUserAgent(this.userAgent);
             }
 
-            const fileName = Date.now() + ".webm";
-            const tf = await this.diskCache.getTempFile(fileName, "video/webm");
-
-            ServiceProvider.from(this).registerDisposable(tf);
-
             if (this.viewPort) {
                 if (this.mobile) {
                     this.deviceScaleFactor ??= 2;
@@ -146,14 +143,24 @@ export default class extends Page {
 
             const { fps } = this;
 
-            const recorder = new PuppeteerVideoRecorder({
-                outputFile: tf.path,
-                page,
-                fps,
-                scale: 0.5
-            });
+            // const recorder = new PuppeteerVideoRecorder({
+            //     outputFile: tf.path,
+            //     page,
+            //     fps,
+            //     scale: 0.5
+            // });
 
-            await recorder.start();
+            // await recorder.start();
+
+            const otf = await this.diskCache.getTempFile(`${newID()}.webm`, "video/webm");
+            ServiceProvider.from(this).registerDisposable(otf);
+
+            const recorder = await page.record({
+                audio: false,
+                fps,
+                overwrite: true,
+                path: otf.path
+            });
 
             // const cast = await page.screencast({
             //     fps,
@@ -178,13 +185,23 @@ export default class extends Page {
             // await cast[Symbol.asyncDispose]();
 
             await sleep(3000);
-
-            if(!tf.contentSize) {
+            if(!otf.contentSize) {
                 // we need to restart the process
                 // as every subsequent video calls will fail
                 setTimeout(() => process.exit(),100);
                 throw new EntityAccessError("Screen cast failed");
             }
+
+            const tf = await this.diskCache.getTempFile(`${newID()}.webm`, "video/webm");
+            ServiceProvider.from(this).registerDisposable(tf);
+
+            // convert using ffmpeg...
+            await spawnPromise("ffmpeg", [
+                "-i", otf.path,
+                "-vf", "scale=iw*0.5:ih*0.5",
+                "-y",
+                tf.path
+            ]);
 
             JsonLogger.log({
                 action: "screen-cast-saved",
