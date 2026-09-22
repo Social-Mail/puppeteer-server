@@ -147,7 +147,7 @@ export default class extends Page {
                 outputFile: tf.path,
                 page,
                 fps,
-                scale: 0.5
+                scale: 1
             });
 
             await recorder.start();  
