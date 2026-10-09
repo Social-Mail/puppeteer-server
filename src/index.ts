@@ -18,7 +18,6 @@ server.build({
     port,
     protocol: "http",
     trustProxy: false,
-    acmeOptions: null,
     allowHTTP1: true,
     http1Port: port
 }).catch(console.error);
