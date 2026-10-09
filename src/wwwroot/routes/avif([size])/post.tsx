@@ -49,7 +49,7 @@ export default class extends BaseConverterPage {
         }
 
 
-        await spawnPromise("/ffmpeg/ffmpeg", [
+        await spawnPromise("/home/pptruser/ffmpeg/ffmpeg", [
             "-i",
             input.path,
             '-map', streamIndex,
