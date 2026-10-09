@@ -146,7 +146,7 @@ export class PuppeteerVideoRecorder {
 
     // 4. Run FFmpeg asynchronously now that your critical Puppeteer interactions are over
     return new Promise<void>((resolve, reject) => {
-      const ffmpegProcess = spawn('ffmpeg', [
+      const ffmpegProcess = spawn('/home/pptruser/ffmpeg/ffmpeg', [
         '-y',
         '-f', 'concat',
         '-safe', '0',
