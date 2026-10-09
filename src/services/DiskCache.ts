@@ -3,6 +3,7 @@ import { RegisterSingleton } from "@entity-access/entity-access/dist/di/di.js";
 import { join } from "path";
 import { randomUUID } from "crypto";
 import BaseDiskCache from "@entity-access/server-pages/dist/cache/BaseDiskCache.js";
+import mime from "mime-types";
 
 const cacheRoot = process.env.TMP_PATH || "/tmp/puppeteer-server/tmp";
 @RegisterSingleton
@@ -19,8 +20,8 @@ export default class DiskCacheService {
         });
     }
 
-    public getTempFile(name, ct) {
-        return this.tmp.createTempFileDeleteOnExit([randomUUID(), name], name, ct);
+    public getTempFile(name, ct?) {
+        return this.tmp.createTempFileDeleteOnExit([randomUUID(), name], name, ct ??= mime.lookup(name) || "application/octet-stream");
     }
 
 }
