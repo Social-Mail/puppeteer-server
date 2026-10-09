@@ -14,13 +14,13 @@ RUN apt-get update && \
 
 USER pptruser
 
-RUN mkdir -p /ffmpeg/
+RUN mkdir -p /home/pptruser/ffmpeg
 WORKDIR /ffmpeg
 # RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
 #     tar xvf ./ffmpeg-release-amd64-static.tar.xz --strip-components 1
 
-COPY --from=mwader/static-ffmpeg:7.1 /ffmpeg /ffmpeg/
-COPY --from=mwader/static-ffmpeg:7.1 /ffprobe /ffmpeg/
+COPY --from=mwader/static-ffmpeg:7.1 /ffmpeg /home/pptruser/ffmpeg/
+COPY --from=mwader/static-ffmpeg:7.1 /ffprobe /home/pptruser/ffmpeg/
  
 # 3. Establish a standard workspace in the user's home directory
 WORKDIR /home/pptruser/app

@@ -16,7 +16,7 @@ export default class extends BaseConverterPage {
 
         const { size } = this;
 
-        const ffprobe = spawnSync('/ffmpeg/ffprobe', [
+        const ffprobe = spawnSync('/home/pptruser/ffmpeg/ffprobe', [
             '-v', 'error',
             '-show_entries', 'stream=index:stream_tags=handler_name',
             '-of', 'json',

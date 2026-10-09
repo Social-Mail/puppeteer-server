@@ -11,7 +11,7 @@ export default class extends BaseConverterPage {
         args
     }: IConvertParams) {
 
-         await spawnPromise("/ffmpeg/ffmpeg", [
+         await spawnPromise("/home/pptruser/ffmpeg/ffmpeg", [
             "-i",
             input.path,
             "-vf", "fps=25",
