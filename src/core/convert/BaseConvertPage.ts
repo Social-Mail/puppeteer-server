@@ -52,6 +52,9 @@ export default abstract class BaseConverterPage extends Page {
             await input.writeAll(Readable.fromWeb(rs.body as any));
         } else {
             input = this.form.files[0]
+            if(!input) {
+                throw new Error(`No files were uploaded in the multi part form`);
+            }
             // input = new LocalFile(this.filePath, void 0, void 0, () => void 0);
         }
 
