@@ -7,11 +7,21 @@ USER root
 
 # 2. Install FFmpeg, Tini, and clean up apt caches to minimize layer size
 RUN apt-get update && \
-    apt-get install -y ffmpeg tini --no-install-recommends && \
+    apt-get install -y tini --no-install-recommends && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
 USER pptruser
+
+RUN mkdir -p /ffmpeg/
+WORKDIR /ffmpeg
+# RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+#     tar xvf ./ffmpeg-release-amd64-static.tar.xz --strip-components 1
+
+COPY --from=mwader/static-ffmpeg:7.1 /ffmpeg /ffmpeg/
+COPY --from=mwader/static-ffmpeg:7.1 /ffprobe /ffmpeg/
+ 
 # 3. Establish a standard workspace in the user's home directory
 WORKDIR /home/pptruser/app
 
