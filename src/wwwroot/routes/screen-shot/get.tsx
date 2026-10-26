@@ -174,7 +174,11 @@ export default class extends Page {
                     break;
                 case "pdf":
                     contentType = "application/pdf";
-                    outputBuffer = await page.pdf({});
+                    outputBuffer = await page.pdf({
+                        format: "A4",
+                        preferCSSPageSize: true,
+                        printBackground: true
+                    });
                     break;
                 case "html":
                     contentType = "text/plain";
