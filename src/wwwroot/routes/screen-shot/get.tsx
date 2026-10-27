@@ -93,9 +93,9 @@ export default class extends Page {
 
             if(this.mobile) {
                 const userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 12_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/70.0.3538.75 Mobile/15E148 Safari/605.1 Mobile-Preview/1.1";
-                page.setUserAgent(userAgent);
+                await page.setUserAgent(userAgent,);
             } else if (this.userAgent) {
-                page.setUserAgent(this.userAgent);
+                await page.setUserAgent(this.userAgent);
             }
 
             if (this.viewPort) {
