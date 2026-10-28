@@ -172,6 +172,10 @@ export default class extends Page {
                     contentType = "image/png";
                     outputBuffer = await takeFullPageScreenshot(page, this.fullPage || false, output);
                     break;
+                case "jpg":
+                    contentType = "image/jpeg";
+                    outputBuffer = await takeFullPageScreenshot(page, this.fullPage || false, "jpeg");
+                    break;
                 case "pdf":
                     contentType = "application/pdf";
                     outputBuffer = await page.pdf({

@@ -5,7 +5,7 @@ import sharp from "sharp";
 // https://issues.chromium.org/issues/41347676
 export const MAX_SIZE_PX = 16384;
 
-const takeFullPageScreenshot = async (page: Page, fullPage: boolean, type: "webp" | "png") => {
+const takeFullPageScreenshot = async (page: Page, fullPage: boolean, type: "webp" | "png" | "jpeg") => {
 
   if (!fullPage) {
     return await page.screenshot({ type });
@@ -30,7 +30,7 @@ const takeFullPageScreenshot = async (page: Page, fullPage: boolean, type: "webp
 
 export default takeFullPageScreenshot;
 
-const captureLargeScreenshot = async (page: Page, type: "webp" | "png") => {
+const captureLargeScreenshot = async (page: Page, type: "webp" | "png" | "jpeg") => {
   const viewport = page.viewport()!;
   const deviceScaleFactor = viewport.deviceScaleFactor ?? 1;
   const width = viewport.width;
@@ -91,7 +91,7 @@ const stitchImages = async (
   w: number,
   h: number,
   screenshots: Uint8Array[],
-  type: "webp" | "png"
+  type: "webp" | "png" | "jpeg"
 ): Promise<Buffer> => {
   let currentHeight = 0;
   const compositeOperations = [];
