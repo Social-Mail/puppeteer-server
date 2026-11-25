@@ -10,6 +10,7 @@ import Inject, { ServiceProvider } from "@entity-access/entity-access/dist/di/di
 import DiskCacheService from "../../../services/DiskCache.js";
 import { PuppeteerVideoRecorder } from "../../../core/PuppeteerVideoRecorder.js";
 import { newID } from "../../../core/newID.js";
+import LockFile from "../../../core/Lockfile.js";
 
 declare let document;
 declare let window;
@@ -69,6 +70,8 @@ export default class extends Page {
         if(!this.pageUrl) {
             throw new EntityAccessError("url not specified");
         }
+
+        using _lock = await LockFile.lock("puppeteer-process-lock");
 
         try {
 

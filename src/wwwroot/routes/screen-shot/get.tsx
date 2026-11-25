@@ -8,6 +8,7 @@ import takeFullPageScreenshot from "../../../core/takeFullPageScreenShot.js";
 import { CookieData, Protocol } from "puppeteer-core";
 import EntityAccessError from "@entity-access/entity-access/dist/common/EntityAccessError.js";
 import { JsonLogger } from "../../../core/JsonLogger.js";
+import LockFile from "../../../core/Lockfile.js";
 
 declare let document;
 declare let window;
@@ -70,6 +71,8 @@ export default class extends Page {
         if(!this.pageUrl) {
             throw new EntityAccessError("url not specified");
         }
+
+        using _lock = await LockFile.lock("puppeteer-process-lock");
 
         try {
 

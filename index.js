@@ -1,1 +1,3 @@
-import "./dist/index.js";
+import WebCluster from "./dist/WebCluster.js";
+
+WebCluster.start();
