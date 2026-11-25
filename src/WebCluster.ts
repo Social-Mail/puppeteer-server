@@ -15,20 +15,21 @@ export default class WebCluster extends ClusterInstance<any> {
 
     protected async runPrimary(): Promise<void> {
 
-        while(true) {
-            const workers = [] as RecycledWorker[];
-            console.log(`Creating cluster ${numCPUs} workers`);
-            for (let index = 0; index < numCPUs; index++) {
-                workers.push(this.fork());
-            }
-
-            // sleep for 1 hours
-            await sleep(1*60*60*1000);
-
-            for (const worker of workers) {
-                worker.destroy();
-            }
+        const workers = [] as RecycledWorker[];
+        console.log(`Creating cluster ${numCPUs} workers`);
+        for (let index = 0; index < numCPUs; index++) {
+            workers.push(this.fork());
         }
+
+        // sleep for 1 hours
+        await sleep(1*60*60*1000);
+
+        for (const worker of workers) {
+            worker.destroy();
+        }
+
+        // force restart
+        process.exit(0);
     }
     protected async runWorker(): Promise<void> {
         await import("./WebServer.js");
